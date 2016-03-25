@@ -1,0 +1,47 @@
+---
+- name: run ghe-update-check
+  command: /home/admin/ghe-update-check-MODIFIED
+  register: testo
+
+- debug: var=testo
+
+- debug: msg={{ testo.stdout_lines | last }}
+
+# - name: enable maintenance mode in GHE
+#   command: ghe-maintenance -s
+
+# - name: wait for active connections to close
+#   wait_for: host=0.0.0.0 port=443 delay=10 state=drained
+
+# - name: set maintenance state in zenoss
+#   local_action:
+#     module: zenoss
+#     zenoss_host: "{{ zenoss.hostname }}"
+#     user: "{{ zenoss.user }}"
+#     password: "{{ zenoss.password }}"
+#     uid: "{{ zenoss_uid }}"
+#     production_state: maintenance
+
+# - name: snapshot VM
+#   local_action:
+#     module: vmware
+#     vsphere:
+#       host: "{{ vmware.hostname }}"
+#       user: "{{ vmware.user }}"
+#       password: "{{ vmware.password }}"
+#       skip_certcheck: true
+#     guest:
+#       name: brocktest
+#     snapshot:
+#       action: create
+#       name: before GitHub Enterprise upgrade
+#       include_memory: false
+
+#- name: run upgrade
+
+#- name: test git clone
+
+#- name: set production state in zenoss
+
+# - name: disable maintenance mode in GHE
+#   command: ghe-maintenance -u
