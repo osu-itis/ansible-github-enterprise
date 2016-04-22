@@ -1,47 +1,67 @@
 ---
-- name: run ghe-update-check
-  command: /home/admin/ghe-update-check-MODIFIED
-  register: testo
+- name: run ghe-update-check-OSU
+  script: ghe-update-check-OSU
+  register: gheupdatecheck
 
-- debug: var=testo
+- name: enable maintenance mode in GHE
+  command: ghe-maintenance -s
 
-- debug: msg={{ testo.stdout_lines | last }}
+- name: wait for active connections to close
+  wait_for: host=0.0.0.0 port=443 delay=10 state=drained
 
-# - name: enable maintenance mode in GHE
-#   command: ghe-maintenance -s
+- name: set maintenance state in zenoss
+  local_action:
+    module: zenoss
+    zenoss_host: "{{ zenoss.hostname }}"
+    user: "{{ zenoss.user }}"
+    password: "{{ zenoss.password }}"
+    uid: "{{ zenoss_uid }}"
+    production_state: maintenance
 
-# - name: wait for active connections to close
-#   wait_for: host=0.0.0.0 port=443 delay=10 state=drained
+- name: snapshot VM
+  local_action:
+    module: vmware
+    vsphere:
+      host: "{{ vmware.hostname }}"
+      user: "{{ vmware.user }}"
+      password: "{{ vmware.password }}"
+      skip_certcheck: "{{ vmware.skip_certcheck }}"
+    guest:
+      name: "{{ vm_name }}"
+    snapshot:
+      action: create
+      name: before {{ gheupdatecheck.stdout_lines | last | basename }} upgrade
+      include_memory: false
 
-# - name: set maintenance state in zenoss
-#   local_action:
-#     module: zenoss
-#     zenoss_host: "{{ zenoss.hostname }}"
-#     user: "{{ zenoss.user }}"
-#     password: "{{ zenoss.password }}"
-#     uid: "{{ zenoss_uid }}"
-#     production_state: maintenance
+- name: run upgrade
+  shell: yes | ghe-upgrade /var/lib/ghe-updates/{{ gheupdatecheck.stdout_lines | last | basename }}
+  register: gheupgrade
 
-# - name: snapshot VM
-#   local_action:
-#     module: vmware
-#     vsphere:
-#       host: "{{ vmware.hostname }}"
-#       user: "{{ vmware.user }}"
-#       password: "{{ vmware.password }}"
-#       skip_certcheck: true
-#     guest:
-#       name: brocktest
-#     snapshot:
-#       action: create
-#       name: before GitHub Enterprise upgrade
-#       include_memory: false
+- name: wait for server restart
+  local_action: wait_for host={{ inventory_hostname }} port=443 delay=30
 
-#- name: run upgrade
+- name: wait for application to come back up
+  local_action: command curl -s -k -o /dev/null -w "%{http_code}" https://{{ inventory_hostname }} warn=no
+  register: ghe_site
+  until: "ghe_site.stdout == '503'"
+  retries: 5
+  delay: 60
 
-#- name: test git clone
+- name: set production state in zenoss
+  local_action:
+    module: zenoss
+    zenoss_host: "{{ zenoss.hostname }}"
+    user: "{{ zenoss.user }}"
+    password: "{{ zenoss.password }}"
+    uid: "{{ zenoss_uid }}"
+    production_state: production
 
-#- name: set production state in zenoss
+- name: disable maintenance mode in GHE
+  command: ghe-maintenance -u
 
-# - name: disable maintenance mode in GHE
-#   command: ghe-maintenance -u
+- name: wait for sign-in page
+  local_action: uri url=https://{{ inventory_hostname }} return_content=true status_code=200 validate_certs=true
+  register: ghe_site
+  until: "'Enter your ONID username and password to login' in ghe_site.content"
+  retries: 5
+  delay: 60
