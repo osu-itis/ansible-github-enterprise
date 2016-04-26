@@ -36,9 +36,13 @@ Example `group_vars/dev`:
 
 ```
 ---
+ghe:
+  force_upgrade_to_latest: true
 zenoss_uid: /zport/dmd/Devices/Server/Linux/devices/github-dev.someplace.edu
 vm_name: changeme
 ```
+
+* The `ghe.force_upgrade_to_latest` variable forces `ghe-update-check` to ignore the current release series in favor of the latest version available.
 
 ## Upgrading GitHub Enterprise
 
