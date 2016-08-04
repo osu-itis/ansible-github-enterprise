@@ -2,7 +2,7 @@
 - name: set ghe_update_check_cmd with force_upgrade_to_latest
   set_fact:
     ghe_update_check_cmd: "ghe-update-check-OSU -i"
-  when: ghe.force_upgrade_to_latest
+  when: ghe is not undefined and ghe.force_upgrade_to_latest
 
 - name: set ghe_update_check_cmd to default
   set_fact:
@@ -19,9 +19,6 @@
 
 - name: enable maintenance mode in GHE
   command: ghe-maintenance -s
-
-- name: wait for active connections to close
-  wait_for: host=0.0.0.0 port=443 delay=10 state=drained
 
 - name: set maintenance state in zenoss
   local_action:
@@ -69,6 +66,7 @@
     password: "{{ zenoss.password }}"
     uid: "{{ zenoss_uid }}"
     production_state: production
+  when: "'prod' in group_names"
 
 - name: disable maintenance mode in GHE
   command: ghe-maintenance -u
