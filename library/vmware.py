@@ -77,7 +77,6 @@ class VMware(object):
         if 'skip_certcheck' not in self.vsphere:
             logging.debug('skip_certcheck not defined, setting false as default')
             self.vsphere['skip_certcheck'] = False
-
         if 'description' not in self.snapshot:
             logging.debug('description not defined, setting default')
             self.snapshot['description'] = 'created by ansible'
@@ -89,14 +88,15 @@ class VMware(object):
         if self.vsphere['skip_certcheck']:
             context = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
             context.verify_mode = ssl.CERT_NONE
+        else:
+            context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
 
         try:
-            if self.vsphere['skip_certcheck']:
-                self.si = SmartConnect(host=self.vsphere['host'], user=self.vsphere['user'], pwd=self.vsphere['password'], port=self.vsphere['port'], sslContext=context)
-            else:
-                self.si = SmartConnect(host=self.vsphere['host'], user=self.vsphere['user'], pwd=self.vsphere['password'], port=self.vsphere['port'])
+            self.si = SmartConnect(host=self.vsphere['host'], user=self.vsphere['user'], pwd=self.vsphere['password'], port=self.vsphere['port'], sslContext=context)
         except:
-            self.module.fail_json(msg='could not connect to host {}'.format(self.vsphere['host']))
+            # e = sys.exc_info()[0]
+            # logging.debug(pp.pformat(e))
+            self.module.fail_json(msg='error while connecting to host {}'.format(self.vsphere['host']))
 
         atexit.register(Disconnect, self.si)
 
