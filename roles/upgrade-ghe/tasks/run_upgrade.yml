@@ -1,0 +1,62 @@
+---
+- name: enable maintenance mode in GHE
+  command: ghe-maintenance -s
+
+- name: set maintenance state in zenoss
+  local_action:
+    module: zenoss
+    zenoss_host: "{{ zenoss.hostname }}"
+    user: "{{ zenoss.user }}"
+    password: "{{ zenoss.password }}"
+    uid: "{{ zenoss_uid }}"
+    production_state: maintenance
+
+- name: snapshot VM
+  local_action:
+    module: vmware
+    vsphere:
+      host: "{{ vmware.hostname }}"
+      user: "{{ vmware.user }}"
+      password: "{{ vmware.password }}"
+      skip_certcheck: "{{ vmware.skip_certcheck }}"
+    guest:
+      name: "{{ vm_name }}"
+    snapshot:
+      action: create
+      name: before {{ ghe_package_filename }} upgrade
+      include_memory: false
+
+- name: run upgrade
+  shell: yes | ghe-upgrade /var/lib/ghe-updates/{{ ghe_package_filename }}
+  register: gheupgrade
+  ignore_errors: yes
+
+- name: wait for server restart
+  local_action: wait_for host={{ inventory_hostname }} port=443 delay=30
+
+- name: wait for application to come back up
+  local_action: command curl -s -k -o /dev/null -w "%{http_code}" https://{{ inventory_hostname }} warn=no
+  register: ghe_site
+  until: "ghe_site.stdout == '503'"
+  retries: 5
+  delay: 60
+
+- name: set production state in zenoss
+  local_action:
+    module: zenoss
+    zenoss_host: "{{ zenoss.hostname }}"
+    user: "{{ zenoss.user }}"
+    password: "{{ zenoss.password }}"
+    uid: "{{ zenoss_uid }}"
+    production_state: production
+  when: "'prod' in group_names"
+
+- name: disable maintenance mode in GHE
+  command: ghe-maintenance -u
+
+- name: wait for sign-in page
+  local_action: uri url=https://{{ inventory_hostname }} return_content=true status_code=200 validate_certs=true
+  register: ghe_site
+  until: "'Enter your ONID username and password to login' in ghe_site.content"
+  retries: 10
+  delay: 60

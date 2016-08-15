@@ -1,0 +1,12 @@
+---
+- name: download ghe upgrade package file
+  get_url:
+    url: "{{ ghe.upgrade_package_url }}"
+    dest: /var/lib/ghe-updates/
+    mode: 0644
+    validate_certs: false
+  become: true
+
+- name: set ghe_package_filename
+  set_fact:
+    ghe_package_filename: "{{ ghe.upgrade_package_url | basename }}"

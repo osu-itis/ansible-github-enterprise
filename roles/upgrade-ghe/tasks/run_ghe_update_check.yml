@@ -1,0 +1,23 @@
+---
+- name: set ghe_update_check_cmd with force_upgrade_to_latest
+  set_fact:
+    ghe_update_check_cmd: "ghe-update-check-OSU -i"
+  when: ghe is not undefined and ghe.force_upgrade_to_latest
+
+- name: set ghe_update_check_cmd to default
+  set_fact:
+    ghe_update_check_cmd: "ghe-update-check-OSU"
+  when: ghe_update_check_cmd is undefined
+
+- name: run ghe-update-check
+  script: "{{ ghe_update_check_cmd }}"
+  register: gheupdatecheck
+
+- name: verify ghe-update-check results
+  fail:
+    msg: "GitHub Enterprise is currently on the latest release"
+  when: "'Your GitHub Enterprise install is currently on the latest release' in '{{ gheupdatecheck.stdout_lines | last }}'"
+
+- name: set ghe_package_filename
+  set_fact:
+    ghe_package_filename: "{{ gheupdatecheck.stdout_lines | last | basename }}"
