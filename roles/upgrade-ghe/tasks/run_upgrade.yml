@@ -1,6 +1,7 @@
 ---
 - name: enable maintenance mode in GHE
   command: ghe-maintenance -s
+  changed_when: False
 
 - name: set maintenance state in zenoss
   local_action:
@@ -31,6 +32,9 @@
   async: 60
   poll: 0
   ignore_errors: yes
+  tags:
+    # disable ansible-lint check for this task because it thinks this command isn't doing anything when it actually is
+    - skip_ansible_lint
 
 - name: wait for server restart
   local_action: wait_for host={{ inventory_hostname }} port=443 state=stopped delay=30 timeout=600
@@ -41,6 +45,7 @@
   until: "ghe_site.stdout == '503'"
   retries: 10
   delay: 60
+  changed_when: False
 
 - name: set production state in zenoss
   local_action:
@@ -54,6 +59,7 @@
 
 - name: disable maintenance mode in GHE
   command: ghe-maintenance -u
+  changed_when: False
 
 - name: wait for sign-in page
   local_action: uri url=https://{{ inventory_hostname }} return_content=true status_code=200 validate_certs=true
