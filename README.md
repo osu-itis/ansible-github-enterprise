@@ -37,14 +37,16 @@ Example `group_vars/dev`:
 ```
 ---
 ghe:
-#  upgrade_package_url: https://github-enterprise.s3.amazonaws.com/esx/updates/github-enterprise-esx-2.7.1.pkg
-  force_upgrade_to_latest: true
+  sign_in_check_string: Sign in to your account
+  #upgrade_package_url: https://github-enterprise.s3.amazonaws.com/esx/updates/github-enterprise-esx-2.7.1.pkg
+  #force_upgrade_to_latest: true
 zenoss_uid: /zport/dmd/Devices/Server/Linux/devices/github-dev.someplace.edu
 vm_name: changeme
 ```
 
-* The `ghe.force_upgrade_to_latest` variable forces `ghe-update-check` to ignore the current release series in favor of the latest version available.
-* The `ghe.upgrade_package_url` variable forces the playbook to download and run the specified upgrade package file. This option overrides `ghe.force_upgrade_to_latest` and should only be used to force the installation of a specific version.
+* `ghe.sign_in_check_string` - The string to search for when checking if the application has successfully come back up after an upgrade. For deployments using the default GitHub authentication, the value should be 'Sign in to your account' as shown in the example.
+* `ghe.force_upgrade_to_latest` - Force `ghe-update-check` to ignore the current release series in favor of the latest version available.
+* `ghe.upgrade_package_url` - Force the playbook to download and run the specified upgrade package file. This option overrides `ghe.force_upgrade_to_latest` and should only be used to install a specific version.
 
 ## Upgrading GitHub Enterprise
 

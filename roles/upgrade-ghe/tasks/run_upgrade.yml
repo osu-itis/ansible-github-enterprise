@@ -64,7 +64,6 @@
 - name: wait for sign-in page
   local_action: uri url=https://{{ inventory_hostname }} return_content=true status_code=200 validate_certs=true
   register: ghe_site
-  until: "'Enter your ONID username and password to login' in ghe_site.content"
+  until: "'{{ ghe.sign_in_check_string }}' in ghe_site.content"
   retries: 10
   delay: 60
-  when: "'dev' not in group_names"
