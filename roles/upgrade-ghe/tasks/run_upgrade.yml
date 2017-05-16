@@ -11,6 +11,7 @@
     password: "{{ zenoss.password }}"
     uid: "{{ zenoss_uid }}"
     production_state: maintenance
+  when: zenoss_uid is defined
 
 - name: snapshot VM
   local_action:
@@ -26,6 +27,7 @@
       action: create
       name: before {{ ghe_package_filename }} upgrade
       include_memory: false
+  when: vm_name is defined
 
 - name: run upgrade
   shell: sleep 2 && ghe-upgrade -y /var/lib/ghe-updates/{{ ghe_package_filename }}
@@ -55,7 +57,9 @@
     password: "{{ zenoss.password }}"
     uid: "{{ zenoss_uid }}"
     production_state: production
-  when: "'prod' in group_names"
+  when:
+    - zenoss_uid is defined
+    - "'prod' in group_names"
 
 - name: disable maintenance mode in GHE
   command: ghe-maintenance -u
