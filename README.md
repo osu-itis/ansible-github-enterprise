@@ -8,21 +8,6 @@ Ansible playbook for GitHub Enterprise
 
 ## Configuration
 
-`group_vars/all` is required, and contains the configuration for zenoss and vmware that will apply across all infrastructure types:
-
-```
----
-zenoss:
-    hostname: zenoss.someplace.edu
-    user: changeme
-    password: changeme
-vmware:
-    hostname: vcenter.someplace.edu
-    user: changeme
-    password: changeme
-    skip_certcheck: false
-```
-
 For `dev`, `stage`, `prod`, etc., create an inventory and variable file for each infrastructure type.
 
 Example `inventory/dev`:
@@ -47,6 +32,23 @@ vm_name: changeme
 * `ghe.sign_in_check_string` - The string to search for when checking if the application has successfully come back up after an upgrade. For deployments using the default GitHub authentication, the value should be 'Sign in to your account' as shown in the example.
 * `ghe.force_upgrade_to_latest` - Force `ghe-update-check` to ignore the current release series in favor of the latest version available.
 * `ghe.upgrade_package_url` - Force the playbook to download and run the specified upgrade package file. This option overrides `ghe.force_upgrade_to_latest` and should only be used to install a specific version.
+* `zenoss_uid` (optional) - Zenoss device uid for managing maintenance state
+* `vm_name` (optional) - VMware VM name that is running GitHub Enterprise
+
+If `zenoss_uid` and `vm_name` config options are defined, `group_vars/all` must contain the configuration for Zenoss and VMware that will apply across all infrastructure types:
+
+```
+---
+zenoss:
+    hostname: zenoss.someplace.edu
+    user: changeme
+    password: changeme
+vmware:
+    hostname: vcenter.someplace.edu
+    user: changeme
+    password: changeme
+    skip_certcheck: false
+```
 
 ## Upgrading GitHub Enterprise
 
