@@ -12,6 +12,7 @@
     uid: "{{ zenoss_uid }}"
     production_state: maintenance
   when: zenoss_uid is defined
+  no_log: true
 
 - name: snapshot VM
   local_action:
@@ -39,13 +40,13 @@
     - skip_ansible_lint
 
 - name: wait for server restart
-  local_action: wait_for host={{ inventory_hostname }} port=443 state=stopped delay=30 timeout=600
+  local_action: wait_for host={{ inventory_hostname }} port=443 state=stopped delay=30 timeout=900
 
 - name: wait for application to come back up
   local_action: command curl -s -k -o /dev/null -w "%{http_code}" https://{{ inventory_hostname }} warn=no
   register: ghe_site
   until: "ghe_site.stdout == '503'"
-  retries: 10
+  retries: 15
   delay: 60
   changed_when: False
 
@@ -66,8 +67,8 @@
   changed_when: False
 
 - name: wait for sign-in page
-  local_action: uri url=https://{{ inventory_hostname }} return_content=true status_code=200 validate_certs=true
+  local_action: uri url=https://{{ inventory_hostname }} return_content=true status_code=200 validate_certs={{ ghe.validate_cert|default(true)|bool }}
   register: ghe_site
-  until: "'{{ ghe.sign_in_check_string }}' in ghe_site.content"
+  until: "ghe.sign_in_check_string in ghe_site.content"
   retries: 10
   delay: 60
