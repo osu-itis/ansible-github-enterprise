@@ -1,0 +1,23 @@
+---
+- name: set production state in zenoss
+  local_action:
+    module: zenoss
+    zenoss_host: "{{ zenoss.hostname }}"
+    user: "{{ zenoss.user }}"
+    password: "{{ zenoss.password }}"
+    uid: "{{ zenoss_uid }}"
+    production_state: production
+  when:
+    - zenoss_uid is defined
+    - "'prod' in group_names"
+
+- name: disable maintenance mode in GHE
+  command: ghe-maintenance -u
+  changed_when: False
+
+- name: wait for sign-in page
+  local_action: uri url=https://{{ inventory_hostname }} return_content=true status_code=200 validate_certs={{ ghe.validate_cert|default(true)|bool }}
+  register: ghe_site
+  until: "ghe.sign_in_check_string in ghe_site.content"
+  retries: 10
+  delay: 60

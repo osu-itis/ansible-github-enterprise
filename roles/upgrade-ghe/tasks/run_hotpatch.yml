@@ -1,0 +1,17 @@
+---
+- name: run hotpatch
+  shell: sleep 2 && ghe-upgrade -y /var/lib/ghe-updates/{{ ghe_package_filename }}
+  tags:
+    # disable ansible-lint check for this task because it thinks this command isn't doing anything when it actually is
+    - skip_ansible_lint
+
+# - name: wait for server restart
+#   local_action: wait_for host={{ inventory_hostname }} port=443 state=stopped delay=30 timeout=900
+
+# - name: wait for application to come back up
+#   local_action: command curl -s -k -o /dev/null -w "%{http_code}" https://{{ inventory_hostname }} warn=no
+#   register: ghe_site
+#   until: "ghe_site.stdout == '503'"
+#   retries: 15
+#   delay: 60
+#   changed_when: False

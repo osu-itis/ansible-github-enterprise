@@ -1,0 +1,31 @@
+---
+- name: enable maintenance mode in GHE
+  command: ghe-maintenance -s
+  changed_when: False
+
+- name: set maintenance state in zenoss
+  local_action:
+    module: zenoss
+    zenoss_host: "{{ zenoss.hostname }}"
+    user: "{{ zenoss.user }}"
+    password: "{{ zenoss.password }}"
+    uid: "{{ zenoss_uid }}"
+    production_state: maintenance
+  when: zenoss_uid is defined
+  no_log: true
+
+- name: snapshot VM
+  local_action:
+    module: vmware
+    vsphere:
+      host: "{{ vmware.hostname }}"
+      user: "{{ vmware.user }}"
+      password: "{{ vmware.password }}"
+      skip_certcheck: "{{ vmware.skip_certcheck }}"
+    guest:
+      name: "{{ vm_name }}"
+    snapshot:
+      action: create
+      name: before {{ ghe_package_filename }} upgrade
+      include_memory: false
+  when: vm_name is defined
