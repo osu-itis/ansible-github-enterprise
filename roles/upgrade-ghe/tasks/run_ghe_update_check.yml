@@ -1,12 +1,12 @@
 ---
 - name: set ghe_update_check_cmd with force_upgrade_to_latest
   set_fact:
-    ghe_update_check_cmd: "ghe-update-check -i"
+    ghe_update_check_cmd: "ghe-update-check -i -f"
   when: ghe.force_upgrade_to_latest|default(false)|bool == true
 
 - name: set ghe_update_check_cmd to default
   set_fact:
-    ghe_update_check_cmd: "ghe-update-check"
+    ghe_update_check_cmd: "ghe-update-check -f"
   when: ghe_update_check_cmd is undefined
 
 - name: run ghe-update-check

@@ -1,6 +1,12 @@
 ---
-- include: download_upgrade_package.yml
+- import_tasks: download_upgrade_package.yml
   when: ghe is not undefined and ghe.upgrade_package_url is defined
-- include: run_ghe_update_check.yml
+- import_tasks: run_ghe_update_check.yml
   when: ghe_package_filename is undefined
-- include: run_upgrade.yml
+- import_tasks: determine_upgrade_method.yml
+- import_tasks: pre_upgrade.yml
+- import_tasks: run_hotpatch.yml
+  when: ghe_is_hotpatch
+- import_tasks: run_upgrade.yml
+  when: not ghe_is_hotpatch
+- import_tasks: post_upgrade.yml

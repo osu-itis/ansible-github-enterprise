@@ -1,0 +1,6 @@
+---
+- name: run hotpatch
+  shell: sleep 2 && ghe-upgrade -y /var/lib/ghe-updates/{{ ghe_package_filename }}
+  tags:
+    # disable ansible-lint check for this task because it thinks this command isn't doing anything when it actually is
+    - skip_ansible_lint

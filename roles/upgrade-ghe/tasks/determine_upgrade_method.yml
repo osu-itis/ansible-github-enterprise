@@ -1,0 +1,10 @@
+---
+- name: set ghe_is_hotpatch to default value
+  set_fact:
+    ghe_is_hotpatch: false
+- name: check if this is a hotpatch package
+  set_fact:
+    ghe_is_hotpatch: true
+  when: ghe_package_filename | regex_search('(\.hpkg)')
+- debug:
+    var: ghe_is_hotpatch
