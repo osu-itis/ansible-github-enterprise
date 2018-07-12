@@ -10,9 +10,14 @@
   when:
     - zenoss_uid is defined
     - "'prod' in group_names"
+  no_log: true
 
 - name: disable maintenance mode in GHE
   command: ghe-maintenance -u
+  retries: 120
+  delay: 5
+  register: result
+  until: result.rc == 0
   changed_when: False
 
 - name: wait for sign-in page
