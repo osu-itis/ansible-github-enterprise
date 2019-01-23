@@ -16,11 +16,11 @@
 
 - debug:
     msg: "GitHub Enterprise is currently on the latest release"
-  when: "'Your GitHub Enterprise install is currently on the latest release' in gheupdatecheck.stdout_lines|last"
+  when: "'install is currently on the latest release' in gheupdatecheck.stdout_lines|last"
 
 - name: end if already at latest version
   meta: end_play
-  when: "'Your GitHub Enterprise install is currently on the latest release' in gheupdatecheck.stdout_lines|last"
+  when: "'install is currently on the latest release' in gheupdatecheck.stdout_lines|last"
 
 - name: set ghe_package_filename
   set_fact:
