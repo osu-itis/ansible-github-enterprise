@@ -14,8 +14,8 @@
 
 - name: disable maintenance mode in GHE
   command: ghe-maintenance -u
-  retries: 120
-  delay: 5
+  retries: 100
+  delay: 10
   register: result
   until: result.rc == 0
   changed_when: False

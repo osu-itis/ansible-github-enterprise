@@ -1,7 +1,7 @@
 ---
 - name: run upgrade
   shell: sleep 2 && ghe-upgrade -y /var/lib/ghe-updates/{{ ghe_package_filename }}
-  async: 60
+  async: 900
   poll: 0
   ignore_errors: yes
   tags:
