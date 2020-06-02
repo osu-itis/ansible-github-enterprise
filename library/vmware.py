@@ -1,10 +1,12 @@
 #!/usr/bin/python
-import pprint
-import logging
-pp = pprint.PrettyPrinter(indent=2)
-
-import ssl
 import atexit
+import logging
+import ssl
+
+import pprint
+pp_ = pprint.PrettyPrinter(indent=2)
+pp = pp_.pprint
+
 
 try:
     from pyVim.connect import SmartConnect, Disconnect
@@ -15,7 +17,8 @@ except ImportError:
 
 
 def main():
-    logging.basicConfig(filename='/tmp/ansible_vmware_debug.log', level=logging.DEBUG)
+    logging.basicConfig(filename='/tmp/ansible_vmware_debug.log',
+                        level=logging.DEBUG)
 
     module = AnsibleModule(
         argument_spec=dict(
@@ -46,7 +49,8 @@ def main():
         if 'action' not in snapshot:
             module.fail_json(msg='snapshot action is missing')
         if snapshot['action'] not in ['create']:
-            module.fail_json(msg='snapshot action is invalid, choices are [ create ]')
+            module.fail_json(
+                msg='snapshot action is invalid, choices are [ create ]')
         if 'name' not in snapshot:
             module.fail_json(msg='snapshot name is missing')
 
@@ -92,17 +96,25 @@ class VMware(object):
             context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
 
         try:
-            self.si = SmartConnect(host=self.vsphere['host'], user=self.vsphere['user'], pwd=self.vsphere['password'], port=self.vsphere['port'], sslContext=context)
+            self.si = SmartConnect(
+                host=self.vsphere['host'],
+                user=self.vsphere['user'],
+                pwd=self.vsphere['password'],
+                port=self.vsphere['port'],
+                sslContext=context)
         except:
             # e = sys.exc_info()[0]
             # logging.debug(pp.pformat(e))
-            self.module.fail_json(msg='error while connecting to host {}'.format(self.vsphere['host']))
+            self.module.fail_json(
+                msg=f"error while connecting to host {self.vsphere['host']}")
 
         atexit.register(Disconnect, self.si)
 
         # find vm by name
         content = self.si.content
-        obj_view = content.viewManager.CreateContainerView(content.rootFolder, [vim.VirtualMachine], True)
+        obj_view = content.viewManager.CreateContainerView(
+            content.rootFolder, [vim.VirtualMachine], True
+        )
         vms = obj_view.view
         obj_view.Destroy()
 
@@ -113,32 +125,39 @@ class VMware(object):
                 self.vm = vm
 
         if not vm_found:
-            self.module.fail_json(msg='could not find vm {}'.format(self.guest['name']))
+            self.module.fail_json(
+                msg=f"could not find vm {self.guest['name']}")
 
 
     def _wait_task(self, task):
-        while (task.info.state != vim.TaskInfo.State.success and task.info.state != vim.TaskInfo.State.error):
+        while (task.info.state != vim.TaskInfo.State.success and
+               task.info.state != vim.TaskInfo.State.error):
             time.sleep(2)
 
         failed = False
         if task.info.state == vim.TaskInfo.State.success:
             failed = False
-            outmsg = '{} task completed successfully'.format(task.info.task)
+            outmsg = f"{task.info.task} task completed successfully"
         else:
             failed = True
             if task.info.error:
-                outmsg = '{} task failed: {}'.format(task.info.task, task.info.error.msg)
+                outmsg = f"{task.info.task} task failed: {task.info.error.msg}"
             else:
-                outmsg = '{} task failed: error is unknown, state is {}'.format(task.info.task, task.info.state)
+                outmsg = (f"{task.info.task} task failed: error is unknown, "
+                          f"state is {task.info.state}")
 
         return failed, outmsg, task
 
 
     def create_snapshot(self):
-        task = self.vm.CreateSnapshot(name=self.snapshot['name'], description=self.snapshot['description'], memory=self.snapshot['include_memory'], quiesce=False)
+        task = self.vm.CreateSnapshot(
+            name=self.snapshot['name'],
+            description=self.snapshot['description'],
+            memory=self.snapshot['include_memory'],
+            quiesce=False)
         failed, out, __ = self._wait_task(task)
 
-        return failed, dict(msg='create snapshot {}'.format(out)), True
+        return failed, dict(msg=f"create snapshot {out}"), True
 
 
 from ansible.module_utils.basic import *
