@@ -4,6 +4,10 @@ Ansible playbook for GitHub Enterprise
 
 This playbook assumes you are running GitHub Enterprise under SSL.
 
+## Requirements
+
+* This playbook has been tested with Ansible running Python 3.7+.
+
 ## Roles
 
 * `upgrade_ghe` - upgrade GHE to latest version (as determined by `ghe-update-check`)
