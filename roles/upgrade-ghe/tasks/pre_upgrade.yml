@@ -4,8 +4,8 @@
   changed_when: False
 
 - name: set maintenance state in zenoss
-  local_action:
-    module: zenoss
+  delegate_to: localhost
+  zenoss:
     zenoss_host: "{{ zenoss.hostname }}"
     user: "{{ zenoss.user }}"
     password: "{{ zenoss.password }}"
@@ -15,8 +15,8 @@
   no_log: true
 
 - name: snapshot VM
-  local_action:
-    module: vmware
+  delegate_to: localhost
+  vmware:
     vsphere:
       host: "{{ vmware.hostname }}"
       user: "{{ vmware.user }}"
