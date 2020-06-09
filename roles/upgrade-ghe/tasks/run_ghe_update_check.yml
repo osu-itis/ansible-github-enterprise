@@ -2,7 +2,7 @@
 - name: set ghe_update_check_cmd with force_upgrade_to_latest
   set_fact:
     ghe_update_check_cmd: "ghe-update-check -i -f"
-  when: ghe.force_upgrade_to_latest|default(false)|bool == true
+  when: ghe.force_upgrade_to_latest|default(false)|bool
 
 - name: set ghe_update_check_cmd to default
   set_fact:
@@ -14,13 +14,36 @@
   register: gheupdatecheck
   changed_when: False
 
+- name: set lastline
+  set_fact:
+    lastline: "{{ gheupdatecheck.stdout_lines | last }}"
+
+- name: check is_latest_version string 1
+  set_fact:
+    is_latest_version: True
+  when: "'install is currently on the latest release' in lastline"
+
+- name: check is_latest_version string 2
+  set_fact:
+    is_latest_version: True
+  when: "'install is currently on the latest patch release' in lastline"
+
+- name: check is_latest_version string 3
+  set_fact:
+    is_latest_version: True
+  when: "'install is currently on the latest feature release' in lastline"
+
 - debug:
-    msg: "GitHub Enterprise is currently on the latest release"
-  when: "'install is currently on the latest release' in gheupdatecheck.stdout_lines|last"
+    msg: "GitHub Enterprise {{ item }}"
+  when: item in lastline
+  loop:
+    - 'install is currently on the latest release'
+    - 'install is currently on the latest patch release'
+    - 'install is currently on the latest feature release'
 
 - name: end if already at latest version
   meta: end_play
-  when: "'install is currently on the latest release' in gheupdatecheck.stdout_lines|last"
+  when: is_latest_version is not undefined and is_latest_version
 
 - name: set ghe_package_filename
   set_fact:
