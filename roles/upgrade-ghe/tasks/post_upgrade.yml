@@ -1,7 +1,7 @@
 ---
 - name: set production state in zenoss
-  local_action:
-    module: zenoss
+  delegate_to: localhost
+  zenoss:
     zenoss_host: "{{ zenoss.hostname }}"
     user: "{{ zenoss.user }}"
     password: "{{ zenoss.password }}"
@@ -21,7 +21,12 @@
   changed_when: False
 
 - name: wait for sign-in page
-  local_action: uri url=https://{{ inventory_hostname }} return_content=true status_code=200 validate_certs={{ ghe.validate_cert|default(true)|bool }}
+  delegate_to: localhost
+  uri:
+    url: https://{{ inventory_hostname }}
+    return_content: true
+    status_code: 200
+    validate_certs: "{{ ghe.validate_cert|default(true)|bool }}"
   register: ghe_site
   until: "ghe.sign_in_check_string in ghe_site.content"
   retries: 10

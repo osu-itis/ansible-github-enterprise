@@ -9,10 +9,17 @@
     - skip_ansible_lint
 
 - name: wait for server restart
-  local_action: wait_for host={{ inventory_hostname }} port=443 state=stopped delay=30 timeout=900
+  delegate_to: localhost
+  wait_for:
+    host: "{{ inventory_hostname }}"
+    port: 443
+    state: stopped
+    delay: 30
+    timeout: 900
 
 - name: wait for application to come back up
-  local_action: command curl -s -k -o /dev/null -w "%{http_code}" https://{{ inventory_hostname }} warn=no
+  delegate_to: localhost
+  command: curl -s -k -o /dev/null -w "%{http_code}" https://{{ inventory_hostname }} warn=no
   register: ghe_site
   until: "ghe_site.stdout == '503'"
   retries: 15
