@@ -6,7 +6,7 @@ This playbook assumes you are running GitHub Enterprise under SSL.
 
 ## Requirements
 
-* This playbook has been tested with Ansible running Python 3.7+.
+* This playbook has been tested with Ansible running Python 3.8.x
 
 ## Roles
 
@@ -48,15 +48,17 @@ If `zenoss_uid` and `vm_name` config options are defined, `group_vars/all` must 
 ```
 ---
 zenoss:
-    hostname: zenoss.someplace.edu
-    user: changeme
-    password: changeme
+    hostname: '{{ lookup("env", "ZENOSS_HOSTNAME") }}'
+    user: '{{ lookup("env", "ZENOSS_USERNAME") }}'
+    password: '{{ lookup("env", "ZENOSS_PASSWORD") }}'
 vmware:
-    hostname: vcenter.someplace.edu
-    user: changeme
-    password: changeme
+    hostname: '{{ lookup("env", "VCENTER_HOSTNAME") }}'
+    user: '{{ lookup("env", "VCENTER_USERNAME") }}'
+    password: '{{ lookup("env", "VCENTER_PASSWORD") }}'
     skip_certcheck: false
 ```
+
+You are **strongly encouraged** to use environment variables to provide credentials!
 
 ## Upgrading GitHub Enterprise
 
