@@ -1,7 +1,7 @@
 ---
 - name: run upgrade
   shell: sleep 2 && ghe-upgrade -y /var/lib/ghe-updates/{{ ghe_package_filename }}
-  async: 900
+  async: 1800
   poll: 0
   ignore_errors: yes
   tags:
@@ -14,8 +14,8 @@
     host: "{{ inventory_hostname }}"
     port: 443
     state: stopped
-    delay: 30
-    timeout: 900
+    delay: 60
+    timeout: 1800
 
 - name: wait for application to come back up
   delegate_to: localhost
