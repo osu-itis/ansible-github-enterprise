@@ -22,6 +22,6 @@
   command: curl -s -k -o /dev/null -w "%{http_code}" https://{{ inventory_hostname }} warn=no
   register: ghe_site
   until: "ghe_site.stdout == '503'"
-  retries: 15
+  retries: 20
   delay: 60
   changed_when: False
