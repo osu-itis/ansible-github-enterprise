@@ -15,7 +15,7 @@
     port: 443
     state: stopped
     delay: 60
-    timeout: 1800
+    timeout: 2700
 
 - name: wait for application to come back up
   delegate_to: localhost
